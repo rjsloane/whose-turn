@@ -3,7 +3,18 @@ name = "whose-turn"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
-    "flet[all]>=1.0.1",
+    "flet==1.0.1",
+]
+[tool.flet]
+org = "com.rjsloane"
+product = "Whose Turn?"
+
+[tool.flet.app]
+path = "src"
+
+[dependency-groups]
+dev = [
+    "flet[all]==1.0.1",
 ]
