@@ -59,6 +59,10 @@ class Roster:
             raise InvalidNameError(f"{existing.name} is already on the list!")
         return name
 
+    def replace_all(self, players: list[Player]) -> None:
+        """Swap in a new list (e.g. loaded from storage), keeping this Roster object."""
+        self._players = list(players)
+
     def add(self, raw_name: str) -> Player:
         player = Player(name=self.validate_name(raw_name))
         self._players.append(player)

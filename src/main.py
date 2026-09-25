@@ -1,24 +1,17 @@
 import flet as ft
 
-from models import Roster, RoundSetup
-from views.home import HomeView
+from app import WhoseTurnApp
+from storage import KeyValuePlayerStore
 
 
-def main(page: ft.Page) -> None:
+async def main(page: ft.Page) -> None:
     page.title = "Whose Turn?"
     page.theme = ft.Theme(color_scheme_seed=ft.Colors.DEEP_PURPLE)
-    page.appbar = ft.AppBar(
-        title=ft.Text("Whose Turn?", size=24, weight=ft.FontWeight.BOLD),
-        center_title=True,
-        bgcolor=ft.Colors.PRIMARY_CONTAINER,
-    )
 
-    roster = Roster()
-    setup = RoundSetup()
-    home = HomeView(page, roster, setup)
-
-    # SafeArea keeps content clear of the phone's status bar / notch.
-    page.add(ft.SafeArea(home.control, expand=True))
+    # SharedPreferences is Flet 1.0's local key-value storage (Android SharedPreferences
+    # on the phone). Creating it inside main registers it with this page.
+    store = KeyValuePlayerStore(ft.SharedPreferences())
+    await WhoseTurnApp(page, store).start()
 
 
 ft.run(main)

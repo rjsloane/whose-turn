@@ -9,36 +9,11 @@ from collections.abc import Callable
 import flet as ft
 
 from models import MAX_NAME_LENGTH, InvalidNameError, Player, Roster, RoundSetup
+from views.widgets import player_avatar
 
 NAME_SIZE = 22
 BUTTON_HEIGHT = 56
 DIALOG_BUTTON_STYLE = ft.ButtonStyle(text_style=ft.TextStyle(size=18))
-AVATAR_COLORS = [
-    ft.Colors.RED_300,
-    ft.Colors.ORANGE_300,
-    ft.Colors.AMBER_400,
-    ft.Colors.GREEN_400,
-    ft.Colors.TEAL_300,
-    ft.Colors.BLUE_300,
-    ft.Colors.INDIGO_300,
-    ft.Colors.PURPLE_300,
-    ft.Colors.PINK_300,
-]
-
-
-def avatar_color(player: Player) -> ft.Colors:
-    """A stable colour per player (same id -> same colour on every launch)."""
-    return AVATAR_COLORS[sum(map(ord, player.id)) % len(AVATAR_COLORS)]
-
-
-def player_avatar(player: Player) -> ft.CircleAvatar:
-    # Placeholder until photos/avatars exist: the player's initial on a colour.
-    return ft.CircleAvatar(
-        content=ft.Text(player.name[0].upper(), size=20, weight=ft.FontWeight.BOLD),
-        bgcolor=avatar_color(player),
-        color=ft.Colors.WHITE,
-        radius=24,
-    )
 
 
 class PlayersView:

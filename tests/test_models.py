@@ -156,3 +156,12 @@ def test_can_pick_and_blocker(
         assert message is None
     else:
         assert message is not None and message.startswith(blocker)
+
+
+def test_replace_all() -> None:
+    roster = _roster("Ann")
+    new = [Player("Bob"), Player("Cleo")]
+    roster.replace_all(new)
+    assert roster.players == new
+    new.clear()  # roster keeps its own copy
+    assert len(roster) == 2
