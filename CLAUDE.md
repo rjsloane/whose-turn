@@ -48,13 +48,15 @@ Flet 1.0 broke a lot of 0.x APIs, and much online material is outdated.
   - `src/models.py`: `Player` dataclass, `Roster` (add/remove with validation), mode types.
   - `src/picker.py`: pure pick functions; accept an optional `random.Random` for deterministic tests.
   - `src/storage.py`: persistence, behind a small interface so it can be swapped.
+  - `src/reveal.py`: timing and teaser names for the results "shuffling" animation.
+- `src/assets/icon.png` (1024×1024) is picked up by `flet build` for the app icon.
 - `src/app.py`: app controller: owns state, routing between screens, load/save.
 - UI lives in `src/views/` (one module per screen, shared bits in `widgets.py`); `src/main.py` only does app setup.
 - **State-driven UI:** state lives in plain Python objects; views re-render controls from state after every change. Controls are never the source of truth.
 - Tests in `tests/`, `pythonpath = ["src"]` in `[tool.pytest.ini_options]`. Test all logic in `models.py` and `picker.py`.
 - **Kid-friendly UI:** big tap targets (≥ 48 px, main buttons ~56 px+), large text, simple screens, clear feedback. Must work well in phone portrait.
 - Type hints throughout; small functions.
-- Future features to keep easy (see `ROADMAP.md` once written): player photos/avatars (`Player.photo_path` / `Player.avatar` already exist), built-in avatars, player groups, Play Store / iOS publishing.
+- Future features to keep easy (see `ROADMAP.md`): player photos/avatars (`Player.photo_path` / `Player.avatar` already exist), built-in avatars, player groups, Play Store / iOS publishing.
 
 ## Workflow
 

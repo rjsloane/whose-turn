@@ -40,6 +40,9 @@ class WhoseTurnApp:
         # Only save once loading has succeeded, so a failed load can never
         # overwrite the saved players with an empty list.
         self.can_save = False
+        # Bumped on every new pick or when leaving the results screen, so an
+        # older reveal still running knows to stop.
+        self.reveal_id = 0
 
     async def start(self) -> None:
         self.home = HomeView(self.page, self.roster, self.setup, on_pick=self.pick, on_change=self.save)
@@ -73,6 +76,8 @@ class WhoseTurnApp:
     # --- navigation ------------------------------------------------------
 
     def _route_changed(self, _: ft.RouteChangeEvent | None = None) -> None:
+        if self.page.route != RESULT:
+            self.reveal_id += 1
         self.page.views.clear()
         self.page.views.append(self.home_view)
         if self.page.route == RESULT and self.result is not None:
@@ -96,11 +101,12 @@ class WhoseTurnApp:
     def pick_again(self) -> None:
         if self.result is not None:
             self._show(picker.pick(self.result.mode, self.result.candidates))
-            self.page.update()
 
     def _show(self, result: RoundResult) -> None:
         self.result = result
-        self.results.render(result)
+        self.reveal_id += 1
+        reveal_id = self.reveal_id
+        self.page.run_task(self.results.reveal, self.page, result, lambda: reveal_id == self.reveal_id)
 
     def save(self) -> None:
         if not self.can_save:
