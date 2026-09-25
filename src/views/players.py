@@ -1,0 +1,151 @@
+"""Players screen: add, list and remove players.
+
+The view owns no data: it reads from a `Roster` and calls `render()` after every
+change, so the roster is always the single source of truth.
+"""
+
+from collections.abc import Callable
+
+import flet as ft
+
+from models import MAX_NAME_LENGTH, InvalidNameError, Player, Roster
+
+NAME_SIZE = 22
+BUTTON_HEIGHT = 56
+DIALOG_BUTTON_STYLE = ft.ButtonStyle(text_style=ft.TextStyle(size=18))
+AVATAR_COLORS = [
+    ft.Colors.RED_300,
+    ft.Colors.ORANGE_300,
+    ft.Colors.AMBER_400,
+    ft.Colors.GREEN_400,
+    ft.Colors.TEAL_300,
+    ft.Colors.BLUE_300,
+    ft.Colors.INDIGO_300,
+    ft.Colors.PURPLE_300,
+    ft.Colors.PINK_300,
+]
+
+
+def avatar_color(player: Player) -> ft.Colors:
+    """A stable colour per player (same id -> same colour on every launch)."""
+    return AVATAR_COLORS[sum(map(ord, player.id)) % len(AVATAR_COLORS)]
+
+
+def player_avatar(player: Player) -> ft.CircleAvatar:
+    # Placeholder until photos/avatars exist: the player's initial on a colour.
+    return ft.CircleAvatar(
+        content=ft.Text(player.name[0].upper(), size=20, weight=ft.FontWeight.BOLD),
+        bgcolor=avatar_color(player),
+        color=ft.Colors.WHITE,
+        radius=24,
+    )
+
+
+class PlayersView:
+    def __init__(self, page: ft.Page, roster: Roster, on_change: Callable[[], None] | None = None) -> None:
+        self.page = page
+        self.roster = roster
+        self.on_change = on_change
+
+        self.name_field = ft.TextField(
+            label="Player name",
+            text_size=NAME_SIZE,
+            max_length=MAX_NAME_LENGTH,
+            capitalization=ft.TextCapitalization.WORDS,
+            on_submit=self._handle_add,
+            on_change=self._clear_error,
+            expand=True,
+        )
+        self.add_button = ft.FilledButton(
+            "Add",
+            icon=ft.Icons.PERSON_ADD,
+            height=BUTTON_HEIGHT,
+            style=ft.ButtonStyle(text_style=ft.TextStyle(size=18)),
+            on_click=self._handle_add,
+        )
+        self.heading = ft.Text(size=18, weight=ft.FontWeight.BOLD)
+        self.player_list = ft.ListView(spacing=8, expand=True)
+
+        self.control = ft.Column(
+            [
+                # Button is aligned to the text box (top), not its counter line.
+                ft.Row([self.name_field, self.add_button], vertical_alignment=ft.CrossAxisAlignment.START),
+                self.heading,
+                self.player_list,
+            ],
+            expand=True,
+            spacing=12,
+        )
+        self.render()
+
+    # --- rendering -------------------------------------------------------
+
+    def render(self) -> None:
+        """Rebuild the list from the roster. Caller is responsible for page.update()."""
+        players = self.roster.players
+        self.heading.value = f"Players ({len(players)})"
+        if players:
+            self.player_list.controls = [self._player_row(p) for p in players]
+        else:
+            self.player_list.controls = [
+                ft.Text("No players yet. Add someone above!", size=18, italic=True)
+            ]
+
+    def _player_row(self, player: Player) -> ft.Control:
+        return ft.Card(
+            content=ft.ListTile(
+                leading=player_avatar(player),
+                title=ft.Text(player.name, size=NAME_SIZE),
+                trailing=ft.IconButton(
+                    icon=ft.Icons.DELETE_OUTLINE,
+                    icon_size=28,
+                    tooltip=f"Remove {player.name}",
+                    on_click=lambda _, p=player: self._confirm_remove(p),
+                ),
+            )
+        )
+
+    # --- events ----------------------------------------------------------
+
+    async def _handle_add(self, _: ft.Event) -> None:
+        try:
+            self.roster.add(self.name_field.value)
+        except InvalidNameError as err:
+            self.name_field.error = str(err)
+        else:
+            self.name_field.value = ""
+            self.name_field.error = None
+            self._changed()
+        self.page.update()
+        # Keep the keyboard up so several names can be typed in a row.
+        await self.name_field.focus()
+
+    def _clear_error(self, _: ft.Event) -> None:
+        if self.name_field.error:
+            self.name_field.error = None
+            self.page.update()
+
+    def _confirm_remove(self, player: Player) -> None:
+        def remove(_: ft.Event) -> None:
+            self.page.pop_dialog()
+            self.roster.remove(player.id)
+            self.name_field.error = None  # e.g. a "duplicate" error may no longer apply
+            self._changed()
+            self.page.update()
+
+        self.page.show_dialog(
+            ft.AlertDialog(
+                title=ft.Text(f"Remove {player.name}?", size=24),
+                actions=[
+                    ft.TextButton("Cancel", height=BUTTON_HEIGHT, style=DIALOG_BUTTON_STYLE,
+                                  on_click=lambda _: self.page.pop_dialog()),
+                    ft.FilledButton("Remove", height=BUTTON_HEIGHT, style=DIALOG_BUTTON_STYLE,
+                                    on_click=remove),
+                ],
+            )
+        )
+
+    def _changed(self) -> None:
+        self.render()
+        if self.on_change:
+            self.on_change()
