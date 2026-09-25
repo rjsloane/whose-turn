@@ -1,7 +1,7 @@
 import flet as ft
 
-from models import Roster
-from views.players import PlayersView
+from models import Roster, RoundSetup
+from views.home import HomeView
 
 
 def main(page: ft.Page) -> None:
@@ -14,10 +14,11 @@ def main(page: ft.Page) -> None:
     )
 
     roster = Roster()
-    players_view = PlayersView(page, roster)
+    setup = RoundSetup()
+    home = HomeView(page, roster, setup)
 
     # SafeArea keeps content clear of the phone's status bar / notch.
-    page.add(ft.SafeArea(players_view.control, expand=True))
+    page.add(ft.SafeArea(home.control, expand=True))
 
 
 ft.run(main)

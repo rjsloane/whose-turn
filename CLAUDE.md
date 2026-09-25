@@ -51,4 +51,5 @@ Flet 1.0 broke a lot of 0.x APIs, and much online material is outdated.
 
 ## Workflow
 
-- Work in phases; after each: run tests, confirm the desktop app launches, commit (don't push), then stop with a summary and a phone test checklist.
+- Work in phases; after each: run tests, confirm the desktop app launches, then stop with a summary and a phone test checklist.
+- **Never run git commands that change the repo** (no add/commit/push/reset/etc.). The owner handles all git operations. Suggest a commit message instead.
